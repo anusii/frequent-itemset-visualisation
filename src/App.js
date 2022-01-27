@@ -149,10 +149,10 @@ function App() {
             data: {
               id: item,
               itemsets: filteredData
-                .filter((elem) => elem.items.includes(item))
-                .map((elem) => elem.id),
+                  .filter((elem) => elem.items.includes(item))
+                  .map((elem) => elem.id),
               numOfItemsets: filteredData.filter((elem) =>
-                elem.items.includes(item)
+                  elem.items.includes(item)
               ).length,
             },
           };
@@ -161,21 +161,36 @@ function App() {
       const nodes = getNodes(filteredData);
       const edges = filteredData.flatMap((row) => {
         return row.items.flatMap((src, i) => {
-          return row.items.slice(i + 1).map((dest) => {
+          if (i === row.items.length - 1) {
+            if (i > 2) {
+              return {
+                data: {
+                  id: UUID.generate(),
+                  itemsetID: row.id,
+                  source: src,
+                  target: row.items[0],
+                  support: row.support,
+                  count: row.count,
+                  items: row.items,
+                  color: COLORSCALE(row.support).hex(),
+                },
+              };
+            }
+          } else {
             return {
               data: {
                 id: UUID.generate(),
                 itemsetID: row.id,
                 source: src,
-                target: dest,
+                target: row.items[i + 1],
                 support: row.support,
                 count: row.count,
                 items: row.items,
                 color: COLORSCALE(row.support).hex(),
               },
             };
-          });
-        });
+          }
+        }).filter((item) => item);
       });
       console.log(nodes, edges);
       const layout = {
