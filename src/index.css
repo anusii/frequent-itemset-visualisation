@@ -11,3 +11,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.popper {
+  background-color: #880e4f;
+  color: #dddddd;
+  font-size: 12px;
+  font-family: sans-serif;
+  border-radius: 5px;
+  max-width: 250px;
+  min-width: 50px;
+  overflow-wrap: break-word;
+  padding: 0.5em;
+}

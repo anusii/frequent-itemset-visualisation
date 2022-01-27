@@ -1,20 +1,19 @@
 import "./App.css";
 import data from "./data";
-import { uniq, countBy, max, map, union, intersection } from "lodash";
+import { countBy, intersection, map, max, uniq } from "lodash";
 import { useEffect, useRef, useState } from "react";
-import {
-  Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-} from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { makeStyles } from "@material-ui/core/styles";
-import { Box, Grid, Paper, Slider, Typography } from "@material-ui/core";
+import { Grid, Paper, Slider, Typography } from "@material-ui/core";
 import Plot from "react-plotly.js";
 import chroma from "chroma-js";
 import cytoscape from "cytoscape";
 import UUID from "uuidjs";
+import popper from "cytoscape-popper";
+import tippy from "tippy.js";
+import "tippy.js/themes/light.css";
+
+cytoscape.use(popper);
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -215,7 +214,36 @@ function App() {
       });
       cyRef.current = cy;
 
-      // set interaction behavior
+      // on hover, show itemset members and support
+      cy.on("mouseover", "edge", (evt) => {
+        const popper = evt.target.popperRef();
+        const div = document.createElement("div");
+        const tip = new tippy(div, {
+          getReferenceClientRect: popper.getBoundingClientRect, // https://atomiks.github.io/tippyjs/v6/all-props/#getreferenceclientrect
+          trigger: "manual", // mandatory, we cause the tippy to show programmatically.
+          // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
+          content: () => {
+            div.classList.add("popper");
+            div.innerHTML =
+              `Support: ${evt.target._private.data.support.toFixed(
+                4
+              )}</br>Itemset:</br>` +
+              evt.target._private.data.items
+                .map((itemid) => `- ${itemid}</br>`)
+                .join("");
+            document.body.appendChild(div);
+            return div;
+          },
+          placement: "right",
+          offset: [0, 15],
+        });
+        tip.show();
+        evt.target.on("mouseout", () => {
+          tip.hide();
+        });
+      });
+
+      // highlight itemset when an edge is clicked
       cy.on("tapstart", "edge", (evt) => {
         if (evt.target && evt.target._private.data.itemsetID) {
           console.log(evt.target._private.data);
