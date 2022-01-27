@@ -287,7 +287,7 @@ function App() {
   return (
     <div className={styles.content}>
       <Typography variant={"h4"} component={"p"} gutterBottom>
-        Frequent Itemset and Support
+        MCOMP Frequent Itemset and Support
       </Typography>
       <Grid container spacing={2}>
         <Grid item xs={5} direction={"column"}>
