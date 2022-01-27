@@ -1,16 +1,10 @@
 import "./App.css";
 import data from "./data";
-import { uniq, countBy, max, map, union, intersection } from "lodash";
-import { useEffect, useRef, useState } from "react";
-import {
-  Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-} from "@mui/material";
-import { makeStyles } from "@material-ui/core/styles";
-import { Box, Grid, Paper, Slider, Typography } from "@material-ui/core";
+import {countBy, intersection, map, max, uniq} from "lodash";
+import {useEffect, useRef, useState} from "react";
+import {FormControl, InputLabel, MenuItem, Select,} from "@mui/material";
+import {makeStyles} from "@material-ui/core/styles";
+import {Grid, Paper, Slider, Typography} from "@material-ui/core";
 import Plot from "react-plotly.js";
 import chroma from "chroma-js";
 import cytoscape from "cytoscape";
@@ -63,17 +57,17 @@ function App() {
             selector: "node",
             style: {
               opacity: (elem) =>
-                intersection(selectedItemsetId, elem.attr("itemsets")).length >
-                0
-                  ? 1
-                  : 0.3,
+                  intersection(selectedItemsetId, elem.attr("itemsets")).length >
+                  0
+                      ? 1
+                      : 0.3,
             },
           },
           {
             selector: "edge",
             style: {
               opacity: (elem) =>
-                selectedItemsetId.includes(elem.attr("itemsetID")) ? 1 : 0.1,
+                  selectedItemsetId.includes(elem.attr("itemsetID")) ? 1 : 0.1,
             },
           },
         ];
@@ -86,9 +80,9 @@ function App() {
 
   useEffect(() => {
     setFilteredData(
-      data
-        .filter((elem) => elem.items.length === itemsetSize)
-        .filter((elem) => elem.support >= minSupport)
+        data
+            .filter((elem) => elem.items.length === itemsetSize)
+            .filter((elem) => elem.support >= minSupport)
     );
     setSelectedItemsetId([]);
   }, [itemsetSize, minSupport]);
@@ -96,13 +90,13 @@ function App() {
   useEffect(() => {
     if (filteredData && filteredData.length > 0) {
       setBinCount(
-        countBy(filteredData, (elem) => Math.floor(elem.support * 10))
+          countBy(filteredData, (elem) => Math.floor(elem.support * 10))
       );
 
       const COLORSCALE = chroma
-        .scale("Spectral")
-        .mode("lch")
-        .domain([0, max(map(filteredData, "support"))]);
+          .scale("Spectral")
+          .mode("lch")
+          .domain([0, max(map(filteredData, "support"))]);
 
       const newStyle = [
         {
@@ -150,10 +144,10 @@ function App() {
             data: {
               id: item,
               itemsets: filteredData
-                .filter((elem) => elem.items.includes(item))
-                .map((elem) => elem.id),
+                  .filter((elem) => elem.items.includes(item))
+                  .map((elem) => elem.id),
               numOfItemsets: filteredData.filter((elem) =>
-                elem.items.includes(item)
+                  elem.items.includes(item)
               ).length,
             },
           };
@@ -162,21 +156,36 @@ function App() {
       const nodes = getNodes(filteredData);
       const edges = filteredData.flatMap((row) => {
         return row.items.flatMap((src, i) => {
-          return row.items.slice(i + 1).map((dest) => {
+          if (i === row.items.length - 1) {
+            if (i > 2) {
+              return {
+                data: {
+                  id: UUID.generate(),
+                  itemsetID: row.id,
+                  source: src,
+                  target: row.items[0],
+                  support: row.support,
+                  count: row.count,
+                  items: row.items,
+                  color: COLORSCALE(row.support).hex(),
+                },
+              };
+            }
+          } else {
             return {
               data: {
                 id: UUID.generate(),
                 itemsetID: row.id,
                 source: src,
-                target: dest,
+                target: row.items[i + 1],
                 support: row.support,
                 count: row.count,
                 items: row.items,
                 color: COLORSCALE(row.support).hex(),
               },
             };
-          });
-        });
+          }
+        }).filter((item) => item);
       });
       console.log(nodes, edges);
       const layout = {
@@ -230,9 +239,9 @@ function App() {
       });
       cy.on("tapstart", "node", (evt) => {
         setSelectedItemsetId(
-          filteredData
-            .filter((elem) => elem.items.includes(evt.target._private.data.id))
-            .map((elem) => elem.id)
+            filteredData
+                .filter((elem) => elem.items.includes(evt.target._private.data.id))
+                .map((elem) => elem.id)
         );
       });
       // clear
@@ -243,64 +252,64 @@ function App() {
   }, [filteredData]);
 
   return (
-    <div className={styles.content}>
-      <Typography variant={"h4"} component={"p"} gutterBottom>
-        Frequent Itemset and Support
-      </Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={5} direction={"column"}>
-          <Paper className={styles.item}>
-            <FormControl style={{ width: "10%" }}>
-              <InputLabel>Itemset Size</InputLabel>
-              <Select
-                value={itemsetSize}
-                label="Itemset size"
-                onChange={(e) => {
-                  setItemsetSize(parseInt(e.target.value));
-                }}
-              >
-                {itemsetSizes.sort().map((elem) => (
-                  <MenuItem value={String(elem)} key={String(elem)}>
-                    {elem}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <InputLabel>Minimum Support Value</InputLabel>
-            <Slider
-              aria-label="Minimum support"
-              defaultValue={initialSliderVal}
-              min={0}
-              max={1}
-              step={0.01}
-              valueLabelDisplay="on"
-              onChange={(e) => setMinSupport(parseFloat(e.target.textContent))}
-              style={{ width: "80%", marginLeft: "10%", marginRight: "10%" }}
-            />
-            <Plot
-              data={[
-                {
-                  type: "bar",
-                  orientation: "v",
-                  x: Object.keys(binCount).map((item) => parseInt(item) / 10),
-                  y: Object.values(binCount),
-                },
-              ]}
-              layout={{
-                title: "Itemset count by Support",
-                xaxis: { title: "Support" },
-                yaxis: { title: "Count" },
-              }}
-            />
-          </Paper>
+      <div className={styles.content}>
+        <Typography variant={"h4"} component={"p"} gutterBottom>
+          Frequent Itemset and Support
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={5} direction={"column"}>
+            <Paper className={styles.item}>
+              <FormControl style={{width: "10%"}}>
+                <InputLabel>Itemset Size</InputLabel>
+                <Select
+                    value={itemsetSize}
+                    label="Itemset size"
+                    onChange={(e) => {
+                      setItemsetSize(parseInt(e.target.value));
+                    }}
+                >
+                  {itemsetSizes.sort().map((elem) => (
+                      <MenuItem value={String(elem)} key={String(elem)}>
+                        {elem}
+                      </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <InputLabel>Minimum Support Value</InputLabel>
+              <Slider
+                  aria-label="Minimum support"
+                  defaultValue={initialSliderVal}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  valueLabelDisplay="on"
+                  onChange={(e) => setMinSupport(parseFloat(e.target.textContent))}
+                  style={{width: "80%", marginLeft: "10%", marginRight: "10%"}}
+              />
+              <Plot
+                  data={[
+                    {
+                      type: "bar",
+                      orientation: "v",
+                      x: Object.keys(binCount).map((item) => parseInt(item) / 10),
+                      y: Object.values(binCount),
+                    },
+                  ]}
+                  layout={{
+                    title: "Itemset count by Support",
+                    xaxis: {title: "Support"},
+                    yaxis: {title: "Count"},
+                  }}
+              />
+            </Paper>
+          </Grid>
+          <Grid item xs={7} sx={{height: "100vh"}}>
+            <Paper className={styles.box}>
+              <div className={styles.cy} id={"cy"}/>
+            </Paper>
+          </Grid>
         </Grid>
-        <Grid item xs={7} sx={{ height: "100vh" }}>
-          <Paper className={styles.box}>
-            <div className={styles.cy} id={"cy"} />
-          </Paper>
-        </Grid>
-      </Grid>
-    </div>
+      </div>
   );
 }
 
