@@ -11,7 +11,6 @@ import cytoscape from "cytoscape";
 import UUID from "uuidjs";
 import popper from "cytoscape-popper";
 import tippy from "tippy.js";
-import "tippy.js/themes/light.css";
 
 cytoscape.use(popper);
 
