@@ -14,6 +14,11 @@ import tippy from "tippy.js";
 
 cytoscape.use(popper);
 
+const COLORSCALE = chroma
+    .scale("Spectral")
+    .mode("lch")
+    .domain([0, 1]);
+
 const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
@@ -36,6 +41,27 @@ const useStyles = makeStyles((theme) => ({
     height: "90vh",
     backgroundColor: "primary.dark",
   },
+  table: {
+    'border-collapse':'collapse',
+    'border-spacing':0,
+    'border-color':'#AAAAAA',
+    'border-style':'solid',
+    'border-width':'1px',
+    // 'font-weight':'normal',
+    fontFamily:'Arial, sans-serif',
+    fontSize:'16px',
+    overflow:'hidden',
+    margin: 10,
+    wordBreak:'normal',
+    textAlign:'center',
+    verticalAlign:'top',
+    position: 'absolute',
+    backgroundColor: 'white',
+  },
+  tableCell: {
+    paddingInlineStart: 5,
+    paddingInlineEnd: 5,
+  }
 }));
 
 const initialSliderVal = 0;
@@ -96,11 +122,6 @@ function App() {
       setBinCount(
         countBy(filteredData, (elem) => Math.floor(elem.support * 10))
       );
-
-      const COLORSCALE = chroma
-        .scale("Spectral")
-        .mode("lch")
-        .domain([0, max(map(filteredData, "support"))]);
 
       const newStyle = [
         {
@@ -284,6 +305,9 @@ function App() {
     }
   }, [filteredData]);
 
+  const arr = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+  arr.reverse()
+
   return (
     <div className={styles.content}>
       <Typography variant={"h4"} component={"p"} gutterBottom>
@@ -338,6 +362,24 @@ function App() {
         </Grid>
         <Grid item xs={7} sx={{ height: "100vh" }}>
           <Paper className={styles.box}>
+            <table className={styles.table}>
+              <thead>
+              <tr>
+                <th />
+                <th style={{textAlign:'center', padding: '5px 5px 5px 5px'}}>Support</th>
+              </tr>
+              </thead>
+              <tbody>
+              {
+                arr.map((val) => (
+                    <tr>
+                      <td className={styles.tableCell}><div style={{width: '20px', height: '20px', backgroundColor: COLORSCALE(val).hex(), borderRadius: '10px'}}/></td>
+                      <td className={styles.tableCell}> {val} </td>
+                    </tr>
+                ))
+              }
+              </tbody>
+            </table>
             <div className={styles.cy} id={"cy"} />
           </Paper>
         </Grid>
