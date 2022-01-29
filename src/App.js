@@ -182,7 +182,7 @@ function App() {
       const edges = filteredData.flatMap((row) => {
         return row.items.flatMap((src, i) => {
           if (i === row.items.length - 1) {
-            if (i > 2) {
+            if (row.items.length > 2) {
               return {
                 data: {
                   id: UUID.generate(),
