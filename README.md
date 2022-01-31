@@ -12,9 +12,6 @@ Visualisation of frequent itemsets.
   2. Identify distribution of support among itemsets
   3. Click on an edge to highlight the itemset of interest
 
-Todo
-- [ ] add legend (node size and edge color)
-
 # Getting Started 
 
 ```
